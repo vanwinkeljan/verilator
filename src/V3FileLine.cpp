@@ -332,6 +332,7 @@ void FileLine::warnStyleOff(bool flag) {
 }
 
 bool FileLine::warnIsOff(V3ErrorCode code) const {
+    if (m_waive) return true;
     if (!m_warnOn.test(code)) return true;
     if (!defaultFileLine().m_warnOn.test(code)) return true;  // Global overrides local
     // UNOPTFLAT implies UNOPT
@@ -360,8 +361,8 @@ void FileLine::v3errorEnd(std::ostringstream& sstr, const string& locationStr) {
         lstr << std::setw(ascii().length()) << " "
              << ": " << locationStr;
     }
-    if (warnIsOff(V3Error::errorCode())
-        || V3Config::waive(this, V3Error::errorCode(), sstr.str())) {
+    m_waive = V3Config::waive(this, V3Error::errorCode(), sstr.str());
+    if (warnIsOff(V3Error::errorCode())) {
         V3Error::suppressThisWarning();
     } else if (!V3Error::errorContexted()) {
         nsstr << warnContextPrimary();
